@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WhatsApp Conversation Hider
 // @namespace    https://roinujnosde.me
-// @version      0.2
+// @version      0.3
 // @description  Hides the conversation tab when ESC is pressed
 // @author       RoinujNosde
 // @match        https://web.whatsapp.com/
@@ -13,53 +13,44 @@
 
 (function() {
     'use strict';
-
-    var openConvoClassName = "_3xTHG";
-    var connectingClassName = "_2dfCc";
-    var moreOptionsButtonClassName = "_26lC3";
     var closeConvoClassName = "_2oldI dJxPU";
 
-    function closeConversation() {
-        var elements = document.getElementsByClassName(openConvoClassName);
-        if (elements.length == 0) {
-            console.debug("Couldn't find an open conversation");
-            return false;
-        }
-        console.debug("Conversation open");
+    function isConversationOpen() {
+        return document.getElementsByClassName("_3xTHG").length > 0;
+    }
 
-        document.getElementsByClassName(moreOptionsButtonClassName)[4].click();
+    function hideOptions() {
+        document.getElementsByClassName("o--vV wGJyi")[0].style.display = "none";
+    }
+
+    function getMoreOptions() {
+        return document.getElementsByClassName("_26lC3")[4];
+    }
+
+    function closeConversation() {
+        if (!isConversationOpen()) {
+            return;
+        }
+        getMoreOptions().click();
         setTimeout(function() {
             var buttons = document.getElementsByClassName(closeConvoClassName);
-            if (buttons.length === 6) {
+            if (buttons.length === 6) { //it's a group
+                document.getElementsByClassName("_3K4-L")[0].focus(); //scroll works again
+                hideOptions();
                 return;
             }
             var index = buttons.length === 9 ? 4 : 2;
-            document.getElementsByClassName(closeConvoClassName)[index].click()
-
+            buttons[index].click()
+            hideOptions();
         }, 1);
-
-        return true;
     }
 
-    function checkIfConnected() {
-        return document.getElementsByClassName(connectingClassName).length == 0;
-    }
-
-    function addListener() {
-        if (!checkIfConnected()) {
-            setTimeout(addListener, 1000);
-            return;
-        }
-
-        document.addEventListener('keydown', function (event) {
-            if (event.key === "Escape") {
-                console.debug("Esc pressed");
-                if (closeConversation()) {
-                    event.preventDefault();
-                }
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            console.debug("Esc pressed");
+            if (closeConversation()) {
+                event.preventDefault();
             }
-        });
-    }
-
-    addListener();
+        }
+    });
 })();
